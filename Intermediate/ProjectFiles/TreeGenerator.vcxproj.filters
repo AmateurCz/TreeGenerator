@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="..\..\TreeGenerator.uproject" />
+    <Filter Include="Source">
+      <UniqueIdentifier>{A159A8F3-8DF1-4324-8887-2B7400111661}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\TreeGenerator.Target.cs">
+      <Filter>Source</Filter>
+    </None>
+    <None Include="..\..\Source\TreeGeneratorEditor.Target.cs">
+      <Filter>Source</Filter>
+    </None>
+    <Filter Include="Config">
+      <UniqueIdentifier>{1A8D7B57-E906-4852-B48F-B0A02D0E795A}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Config\DefaultEditor.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultEngine.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultGame.ini">
+      <Filter>Config</Filter>
+    </None>
+    <Filter Include="Source\TreeGenerator">
+      <UniqueIdentifier>{BC958349-8188-473A-8C98-A6448D1CDA1E}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\TreeGenerator\AttractorModifier.cpp">
+      <Filter>Source\TreeGenerator</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\TreeGenerator\AttractorModifier.h">
+      <Filter>Source\TreeGenerator</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\TreeGenerator\Bud.cpp">
+      <Filter>Source\TreeGenerator</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\TreeGenerator\Bud.h">
+      <Filter>Source\TreeGenerator</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\TreeGenerator\Enviroment.cpp">
+      <Filter>Source\TreeGenerator</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\TreeGenerator\Enviroment.h">
+      <Filter>Source\TreeGenerator</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\TreeGenerator\ProceduralMeshComponent.cpp">
+      <Filter>Source\TreeGenerator</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\TreeGenerator\ProceduralMeshComponent.h">
+      <Filter>Source\TreeGenerator</Filter>
+    </ClInclude>
+    <None Include="..\..\Source\TreeGenerator\TreeGenerator.Build.cs">
+      <Filter>Source\TreeGenerator</Filter>
+    </None>
+    <ClCompile Include="..\..\Source\TreeGenerator\TreeGenerator.cpp">
+      <Filter>Source\TreeGenerator</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\TreeGenerator\TreeGenerator.h">
+      <Filter>Source\TreeGenerator</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\TreeGenerator\TreeGeneratorActor.cpp">
+      <Filter>Source\TreeGenerator</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\TreeGenerator\TreeGeneratorActor.h">
+      <Filter>Source\TreeGenerator</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\TreeGenerator\TreeGeneratorGameMode.cpp">
+      <Filter>Source\TreeGenerator</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\TreeGenerator\TreeGeneratorGameMode.h">
+      <Filter>Source\TreeGenerator</Filter>
+    </ClInclude>
+    <Filter Include="Source\TreeGenerator\Resources">
+      <UniqueIdentifier>{69EB9BE9-49D7-49E4-AFF1-408A537C89FB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\TreeGenerator\Resources\Windows">
+      <UniqueIdentifier>{A43BC252-C344-4196-BC61-ADD515A66DE7}</UniqueIdentifier>
+    </Filter>
+    <ResourceCompile Include="..\..\Source\TreeGenerator\Resources\Windows\TreeGenerator.rc">
+      <Filter>Source\TreeGenerator\Resources\Windows</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\TreeGenerator\EnviromentTile.cpp">
+      <Filter>Source\TreeGenerator</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Source\TreeGenerator\EnviromentTile.h">
+      <Filter>Source\TreeGenerator</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

@@ -1,7 +1,12 @@
 Binaries/
 Build/
 Saved/
-Intermediate/
+Intermediate/Build/
+Intermediate/Config/
+Intermediate/ReimportCache/
+Intermediate/Shaders/
+Intermediate/Staging/
+Intermediate/CachedAssetRegistry.bin
 TreeGenerator.sdf
 TreeGenerator.opensdf
 
