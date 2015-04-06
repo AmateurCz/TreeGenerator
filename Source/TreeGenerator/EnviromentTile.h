@@ -3,34 +3,33 @@
 #pragma once
 
 #include "Bud.h"
-#include "Array3DBase.h"
+
+#define ENVIROMENT_TILE_SIZE 64
+
 /**
  * 
  */
-class TREEGENERATOR_API EnviromentTile : public Array3DBase
+class TREEGENERATOR_API EnviromentTile
 {
 protected:
-	uint32 attractorCount, attractorsUsed;
-	bool* attractorActiveArray;
-	bool allAtractorsUsed;
-	FVector* attractorArray;
-	FRandomStream* randomGenerator;
-
+	TArray<FVector> m_attractors;
+	FVector m_begin;
+	bool isInitialized;
+	int32 value;
 	void DestroyAttractors();
 
 public:
-	EnviromentTile(FVector begin, FRandomStream* randomGenerator);
+	EnviromentTile(FVector begin);
 	~EnviromentTile(void);
 
-	void Initialize(uint32 minAttractors, uint32 maxAttractors);
-
-	void GenerateAttractors();
-	void ResetAttractors();
-	void ResetAll();
+	bool IsInitialized() { return isInitialized; }
+	void Initialize(TSharedPtr<FRandomStream> randomGenerator, uint32 minAttractors, uint32 maxAttractors, TArray<FBox> boundingVolumes);
+	void Reset();
 
 	void DeactivateAttractorsInSphere(FVector position, double radius);
-	void DeactivateAttractorsInBox(FVector min, FVector max);
-	FVector GetDirectionFromCone(FVector position, FVector axis, double radius, double angle, Bud** closeBuds, uint32 closeBudCount);
-	uint32 GetAttractorCount();
-	void GetAttractorsAsVertices(FVector* vertArray, uint32 offset);
+	void DeactivateAttractorsInBox(FBox box);
+	FVector GetDirectionFromCone(FVector position, FVector axis, double radius, double angle, TArray<Bud*> closeBuds);
+	int32 GetValue() const { return value; }
 };
+
+inline bool operator< (const EnviromentTile& lhs, const EnviromentTile& rhs){ return lhs.GetValue() < rhs.GetValue(); }

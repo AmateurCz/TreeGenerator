@@ -6,7 +6,7 @@
 #include "AttractorModifier.generated.h"
 
 UCLASS()
-class TREEGENERATOR_API AAttractorModifier : public AStaticMeshActor
+class TREEGENERATOR_API AAttractorModifier : public AActor
 {
 	GENERATED_BODY()
 	

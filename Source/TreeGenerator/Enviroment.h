@@ -4,36 +4,25 @@
 
 #include "Bud.h"
 #include "EnviromentTile.h"
-#include "Array3DBase.h"
-
 /**
  * 
  */
-class TREEGENERATOR_API Enviroment : public Array3DBase
+class TREEGENERATOR_API Enviroment 
 {
 protected:
-	EnviromentTile ** enviroment;
-	FRandomStream* randomGenerator;
+	TArray<EnviromentTile*> m_tiles;
+	TSharedPtr<FRandomStream> m_randomGenerator;
+	TArray<FBox> m_boundingVolumes;
 
-	uint32 minAttractors, maxAttractors;
-
-	EnviromentTile* CreateTile(FVector position);
-	EnviromentTile* CreateTile(int32 x, int32 y, int32 z);
-
-	void ResizeTiles(int32 x1, int32 y1, int32 z1, int32 x2, int32 y2, int32 z2);
-	void DeleteEnviroment();
+	uint32 m_minAttractors, m_maxAttractors;
 
 public:
-	Enviroment(FRandomStream* randomGenerator, uint32 minAttractors, uint32 maxAttractors);
+	Enviroment(TSharedPtr<FRandomStream> randomGenerator, uint32 minAttractors, uint32 maxAttractors, TArray<FBox> boundingVolumes);
 	~Enviroment(void);
 
 	EnviromentTile* GetTile(FVector position);
-	EnviromentTile* GetTile(uint32 x, uint32 y, uint32 z);
-	FVector GetDirectionFromCone(FVector position, FVector axis, double radius, double angle, Bud** closeBuds, uint32 closeBudCount);
+	EnviromentTile* GetTile(float x, float y, float z);
+	FVector GetDirectionFromCone(FVector position, FVector axis, double radius, double angle, TArray<Bud*>  closeBuds);
 	void DeactivateAttractorsInSphere(FVector position, double radius);
-	void DeactivateAttractorsInBox(FVector min, FVector max);
-
-	//PolygonObject* GetAttractorsAsVertices();
-
-	void ResetAll();
+	void DeactivateAttractorsInBox(FBox box);
 };

@@ -32,12 +32,9 @@ class TREEGENERATOR_API ATreeGeneratorActor : public AActor
 
 private:
 	TArray<Bud*> m_rootBuds;
-	FRandomStream* rand;
-	Enviroment* enviroment;
+	TSharedPtr<FRandomStream> rand;
+	TSharedPtr<Enviroment> enviroment;
 	TArray<AActor*> leafs;
-
-
-	void Delete();
 
 	void ProcessAttractors(Bud* bud);
 
@@ -56,7 +53,6 @@ private:
 	void CalcShadow(Bud* bud, void* parameters);
 	void GetBudsInRadius(Bud* bud, void* parameters);
 	void GrowBuds(Bud* bud);
-	//void CreateCylinder(Bud* bud, void* parameters);
 	void ProcessResourcesSecondPass(Bud* bud, void* parameters);
 
 	GatherResourcesToRootReturnValue GatherResourcesToRoot(Bud* bud);
@@ -77,6 +73,17 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void BeginDestroy() override;
+
+	/***/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Status)
+		bool IsGenerating;
+
+	/***/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Status)
+		TArray<FString> Obstacles;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Status)
+		TArray<FString> BoundingVolumes;
 
 	/**Sets radius ocupied by bud*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Enviroment)
@@ -127,7 +134,7 @@ public:
 		int32 NumberOfIterations;
 
 	// Allow viewing/changing the Material ot the procedural Mesh in editor (if placed in a level at construction)
-	UPROPERTY(VisibleAnywhere, Category = Materials)
+	UPROPERTY(VisibleAnywhere, Category = Model)
 		UProceduralMeshComponent* TreeMesh;
 
 	// Object used as leafs
