@@ -7,7 +7,6 @@ EnviromentTile::EnviromentTile(FVector begin)
 {
 	this->m_begin = begin;
 	isInitialized = false;
-	this->value = FMath::Floor(m_begin.X * ENVIROMENT_TILE_SIZE * ENVIROMENT_TILE_SIZE + m_begin.Y * ENVIROMENT_TILE_SIZE + m_begin.Z);
 }
 
 
