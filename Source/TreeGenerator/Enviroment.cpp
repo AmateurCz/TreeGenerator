@@ -49,7 +49,7 @@ void Enviroment::DeactivateAttractorsInBox(FBox box){
 	for (float x = box.Min.X; x <= box.Max.X; x += ENVIROMENT_TILE_SIZE){
 		for (float y = box.Min.Y; y <= box.Max.Y; y += ENVIROMENT_TILE_SIZE){
 			for (float z = box.Min.Z; z <= box.Max.Z; z += ENVIROMENT_TILE_SIZE){
-				GetTile(x,y,z)->DeactivateAttractorsInBox(box);
+				GetTile(x, y, z)->DeactivateAttractorsInBox(box);
 			}
 		}
 	}
@@ -65,23 +65,25 @@ EnviromentTile* Enviroment::GetTile(float x, float y, float z){
 	int32 end = m_tiles.Num();
 
 
-	int32 value = FMath::Floor(GetRoundedPosition(x)*ENVIROMENT_TILE_SIZE * ENVIROMENT_TILE_SIZE + GetRoundedPosition(y) * ENVIROMENT_TILE_SIZE + GetRoundedPosition(z));
+	FVector position = FVector(GetRoundedPosition(x), GetRoundedPosition(y), GetRoundedPosition(z));
 
 	while (begin < end){
 		int index = (end - begin) / 2 + begin;
 
-		int32 tileValue = m_tiles[index]->GetValue();
+		FVector tilePosition = m_tiles[index]->GetPosition();
 		if (index == begin)
 		{
-			if (tileValue == value)
+			if (tilePosition == position)
 				return m_tiles[index];
 			else
 				break;
 		}
 
-		if (tileValue == value)
+		if (tilePosition == position)
 			return m_tiles[index];
-		if (tileValue < value){
+		if (tilePosition.X < position.X ||
+			(tilePosition.X == position.X && tilePosition.Y < position.Y) ||
+			(tilePosition.X == position.X && tilePosition.Y == position.Y&& tilePosition.Z < position.Z)){
 			begin = index;
 		}
 		else
