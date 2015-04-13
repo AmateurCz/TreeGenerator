@@ -118,12 +118,10 @@ struct CalcShadowParameters{
 
 ATreeGeneratorActor::ATreeGeneratorActor(){
 
-	this->TreeMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Tree"));
 
 	// Apply a material
 	//static ConstructorHelpers::FObjectFinder<UMaterialInterface> Material(TEXT("/Game/Materials/BaseColor.BaseColor"));
-	//this->TreeMesh->SetMaterial(0, Material.Object);
-
+	this->TreeMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Tree"));
 	this->RootComponent = TreeMesh;
 
 	this->LightStrength = 30;
@@ -152,6 +150,7 @@ ATreeGeneratorActor::ATreeGeneratorActor(){
 // Called when the game starts or when spawned
 void ATreeGeneratorActor::BeginPlay()
 {
+	this->TreeMesh->SetMaterial(0, Material);
 	Super::BeginPlay();
 }
 

@@ -135,6 +135,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Model)
 		int32 NumberOfIterations;
 
+	/**Material used on tree mesh*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Model)
+		UMaterialInterface* Material;
+
 	// Allow viewing/changing the Material ot the procedural Mesh in editor (if placed in a level at construction)
 	UPROPERTY(VisibleAnywhere, Category = Model)
 		UProceduralMeshComponent* TreeMesh;
