@@ -28,7 +28,7 @@ void Enviroment::DeactivateAttractorsInSphere(FVector position, double radius){
 	}
 }
 
-FVector Enviroment::GetDirectionFromCone(FVector position, FVector axis, double radius, double angle, TArray<Bud*> closeBuds){
+FVector Enviroment::GetDirectionFromCone(FVector position, FVector axis, double radius, double angle, TArray<Bud*> closeBuds, TArray<FBox> obstacles){
 	FVector v = FVector(0, 0, 0);
 	for (float x = position.X - radius; x <= position.X + radius; x += ENVIROMENT_TILE_SIZE){
 		for (float y = position.Y - radius; y <= position.Y + radius; y += ENVIROMENT_TILE_SIZE){
@@ -37,11 +37,10 @@ FVector Enviroment::GetDirectionFromCone(FVector position, FVector axis, double 
 				if (!tile->IsInitialized())
 					tile->Initialize(this->m_randomGenerator, this->m_minAttractors, this->m_maxAttractors, m_boundingVolumes);
 				tile = GetTile(x, y, z);
-				v += tile->GetDirectionFromCone(position, axis, radius, angle, closeBuds);
+				v += tile->GetDirectionFromCone(position, axis, radius, angle, closeBuds, obstacles);
 			}
 		}
 	}
-	v.Normalize();
 	return v;
 }
 

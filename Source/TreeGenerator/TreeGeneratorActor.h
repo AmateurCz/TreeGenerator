@@ -21,12 +21,11 @@ struct GeometryParameters
 {
 	TArray<FProceduralMeshVertex> points;
 	TArray<PolygonIndices> polys;
-	TArray<FProceduralMeshVertex> caps;
-	uint32 pointSize, polySize, polyOffset, pointOffset, capsCount, capsOffset;
+	uint32 pointSize, polySize, polyOffset, pointOffset, capsCount;
 };
 
 UCLASS()
-class TREEGENERATOR_API ATreeGeneratorActor : public AActor
+class TREEGENERATOR_API ATreeGeneratorActor : public AActor, public FRunnable
 {
 	GENERATED_BODY()
 
@@ -34,9 +33,14 @@ private:
 	TArray<Bud*> m_rootBuds;
 	TSharedPtr<FRandomStream> rand;
 	TSharedPtr<Enviroment> enviroment;
-	TArray<AActor*> leafs;
+	TArray<UStaticMeshComponent*> leafs;
 
 	void ProcessAttractors(Bud* bud);
+
+	FRunnableThread* workerThread;
+	bool workerHasFinished;
+	TArray<FBox> boundingVol;
+	TArray<FBox> obstacles;
 
 	//double lightSthrenght, gravityStrenght, environmentStrength;
 
@@ -52,16 +56,21 @@ private:
 	void ProcessResourcesFirstPass(Bud* bud, void* parameters);
 	void CalcShadow(Bud* bud, void* parameters);
 	void GetBudsInRadius(Bud* bud, void* parameters);
-	void GrowBuds(Bud* bud);
+	void GrowBuds(Bud* bud, TArray<FBox> obstacles);
 	void ProcessResourcesSecondPass(Bud* bud, void* parameters);
 
 	GatherResourcesToRootReturnValue GatherResourcesToRoot(Bud* bud);
 	void CalculateBranchModel(Bud* bud, GeometryParameters* parameters);
 	void BuildBranchModel(Bud* bud, GeometryParameters* parameters);
 
-	void ATreeGeneratorActor::GenerateModel();
-
+	void SpawnLeaf(FVector position, FVector normal);
 public:
+
+	// Begin FRunnable interface.
+	virtual bool Init();
+	virtual uint32 Run();
+	virtual void Stop();
+	// End FRunnable interface
 
 	// Sets default values for this actor's properties
 	ATreeGeneratorActor();
@@ -73,17 +82,6 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void BeginDestroy() override;
-
-	/***/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Status)
-		bool IsGenerating;
-
-	/***/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Status)
-		TArray<FString> Obstacles;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Status)
-		TArray<FString> BoundingVolumes;
 
 	/**Sets radius ocupied by bud*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Enviroment)
@@ -125,6 +123,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Model)
 		float BranchDiameter;
 
+	/***/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Model)
+		float BranchDiameterExponent;
+
 	/**Number of segments in circle*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Model)
 		int32 NumberOfSegments;
@@ -138,11 +140,34 @@ public:
 		UProceduralMeshComponent* TreeMesh;
 
 	// Object used as leafs
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Materials)
-		TSubclassOf<AActor> LeafActor;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Leafs)
+		FVector2D AngleX;
 
-	/**Call this to generate tree*/
+	// Object used as leafs
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Leafs)
+		FVector2D AngleY;
+
+	// Object used as leafs
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Leafs)
+		FVector2D AngleZ;
+
+	// Object used as leafs
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Leafs)
+		float GenerateLeafsUpToDiameter;
+
+	// Object used as leafs
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Leafs)
+		TArray<UStaticMesh*> LeafMeshes;
+
+	/**Call this to generate tree and model*/
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 		void GenerateTree();
+
+	/**Call this to generate model*/
+	UFUNCTION(BlueprintCallable, Category = "Generation")
+		void GenerateModel();
+	/***/
+	UFUNCTION(BlueprintCallable, Category = Status)
+		bool IsGenerating();
 
 };

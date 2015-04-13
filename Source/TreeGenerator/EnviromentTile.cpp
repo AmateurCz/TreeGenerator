@@ -3,6 +3,34 @@
 #include "TreeGenerator.h"
 #include "EnviromentTile.h"
 
+bool RayIntersectsBox(FVector origin, FVector axis, FBox box){
+
+	FVector dirfrac;
+
+	float t1 = (box.Min.X - origin.X)*axis.X;
+	float t2 = (box.Max.X - origin.X)*axis.X;
+	float t3 = (box.Min.Y - origin.Y)*axis.Y;
+	float t4 = (box.Max.Y - origin.Y)*axis.Y;
+	float t5 = (box.Min.Z - origin.Z)*axis.Z;
+	float t6 = (box.Max.Z - origin.Z)*axis.Z;
+
+	float tmin = FMath::Max(FMath::Max(FMath::Min(t1, t2), FMath::Min(t3, t4)), FMath::Min(t5, t6));
+	float tmax = FMath::Min(FMath::Min(FMath::Max(t1, t2), FMath::Max(t3, t4)), FMath::Max(t5, t6));
+
+	// if tmax < 0, ray (line) is intersecting AABB, but whole AABB is behing us
+	if (tmax < 0)
+	{
+		return false;
+	}
+
+	// if tmin > tmax, ray doesn't intersect AABB
+	if (tmin > tmax)
+	{
+		return false;
+	}
+	return true;
+}
+
 EnviromentTile::EnviromentTile(FVector begin)
 {
 	this->m_begin = begin;
@@ -77,7 +105,6 @@ void EnviromentTile::DeactivateAttractorsInBox(FBox box){
 	}
 
 	TIndexedContainerIterator<TArray<FVector>, FVector, int32> iterator = this->m_attractors.CreateIterator();
-
 	for (iterator.Reset(); iterator; iterator++){
 		FVector pos = m_attractors[iterator.GetIndex()];
 		if (box.IsInside(FVector(pos.X, pos.Z, pos.Y))){
@@ -87,7 +114,7 @@ void EnviromentTile::DeactivateAttractorsInBox(FBox box){
 	m_attractors.Shrink();
 }
 
-FVector EnviromentTile::GetDirectionFromCone(FVector position, FVector axis, double radius, double angle, TArray<Bud*>  closeBuds){
+FVector EnviromentTile::GetDirectionFromCone(FVector position, FVector axis, double radius, double angle, TArray<Bud*>  closeBuds, TArray<FBox> obstacles){
 	FVector v = FVector(0, 0, 0);
 	axis.Normalize();	
 	TIndexedContainerIterator<TArray<FVector>, FVector, int32> iterator = this->m_attractors.CreateIterator();
@@ -109,6 +136,9 @@ FVector EnviromentTile::GetDirectionFromCone(FVector position, FVector axis, dou
 			FVector direction = attractorPosition - position;
 			direction.Normalize();
 			add = add && abs(acos(FVector::DotProduct(axis, direction))) < angle;
+			for (TIndexedContainerIterator<TArray<FBox>, FBox, int32>iterator = obstacles; iterator; iterator++){
+				add = add && !RayIntersectsBox(FVector(position.X, position.Z, position.Y), FVector(direction.X, direction.Z, direction.Y), obstacles[iterator.GetIndex()]);
+			}
 			if (add){
 				v += direction;
 			}

@@ -22,7 +22,7 @@ public:
 
 	EnviromentTile* GetTile(FVector position);
 	EnviromentTile* GetTile(float x, float y, float z);
-	FVector GetDirectionFromCone(FVector position, FVector axis, double radius, double angle, TArray<Bud*>  closeBuds);
+	FVector GetDirectionFromCone(FVector position, FVector axis, double radius, double angle, TArray<Bud*>  closeBuds, TArray<FBox> obstacles);
 	void DeactivateAttractorsInSphere(FVector position, double radius);
 	void DeactivateAttractorsInBox(FBox box);
 };

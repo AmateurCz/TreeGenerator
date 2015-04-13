@@ -121,8 +121,8 @@ ATreeGeneratorActor::ATreeGeneratorActor(){
 	this->TreeMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Tree"));
 
 	// Apply a material
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> Material(TEXT("/Game/Materials/BaseColor.BaseColor"));
-	this->TreeMesh->SetMaterial(0, Material.Object);
+	//static ConstructorHelpers::FObjectFinder<UMaterialInterface> Material(TEXT("/Game/Materials/BaseColor.BaseColor"));
+	//this->TreeMesh->SetMaterial(0, Material.Object);
 
 	this->RootComponent = TreeMesh;
 
@@ -139,46 +139,37 @@ ATreeGeneratorActor::ATreeGeneratorActor(){
 
 	this->NumberOfIterations = 10;
 	this->NumberOfSegments = 5;
-	this->LeafActor = NULL;
-	this->leafs.Init(0);
+	this->GenerateLeafsUpToDiameter = 2;
+	this->BranchDiameterExponent = 2.5;
 	rand = NULL;
 	enviroment = NULL;
+	workerThread = NULL;
+	workerHasFinished = false;
 	m_rootBuds.Init(0);
+	this->SetActorTickEnabled(true);
 }
 
 // Called when the game starts or when spawned
 void ATreeGeneratorActor::BeginPlay()
 {
 	Super::BeginPlay();
-	GenerateTree();
 }
 
 // Called every frame
 void ATreeGeneratorActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	if (workerThread && workerHasFinished){
+		workerThread = NULL;
+		GenerateModel();
+	}
 }
 
-void ATreeGeneratorActor::GenerateTree(){
+bool ATreeGeneratorActor::Init(){
+	workerHasFinished = false;
+	this->enviroment.Reset();
+	this->m_rootBuds.Reset();
 
-	TArray<FBox> boundingVol;
-	boundingVol.Init(0);
-	if (GetWorld()){
-		for (TActorIterator<AActor> ActorItr(GetWorld()); ActorItr; ++ActorItr){
-
-			if (BoundingVolumes.Contains(ActorItr->GetName()))
-				boundingVol.Add(ActorItr->GetComponentsBoundingBox());
-		}
-	}
-
-	TIndexedContainerIterator<TArray<AActor*>, AActor*, int32> leafIterator = this->leafs.CreateIterator();
-	for (leafIterator.Reset(); leafIterator; leafIterator++){
-		if (leafs[leafIterator.GetIndex()] != NULL){
-			leafs[leafIterator.GetIndex()]->Destroy();
-		}
-	}
-	this->leafs.Reset();
 
 	if (this->rand.Get() == NULL){
 		this->rand = TSharedPtr<FRandomStream>::TSharedPtr(new FRandomStream());
@@ -187,47 +178,62 @@ void ATreeGeneratorActor::GenerateTree(){
 	if (this->enviroment.Get() == NULL){
 		this->enviroment = TSharedPtr<Enviroment>::TSharedPtr(new Enviroment(this->rand, this->AttractorsMinimum, this->AttractorsMaximum, boundingVol));
 	}
-	if (GetWorld()){
-		for (TActorIterator<AActor> ActorItr(GetWorld()); ActorItr; ++ActorItr){
-			
-			if (Obstacles.Contains(ActorItr->GetName()))
-				this->enviroment->DeactivateAttractorsInBox(ActorItr->GetComponentsBoundingBox());
-		}
-	}
-
 	TIndexedContainerIterator<TArray<FVector>, FVector, int32> rootIterator = this->Roots.CreateIterator();
 	for (rootIterator.Reset(); rootIterator; rootIterator++){
 		m_rootBuds.Add(new Bud(this->Roots[rootIterator.GetIndex()], FVector(0, 1, 0)));
 	}
+	return true;
+}
+uint32 ATreeGeneratorActor::Run(){
 
 	for (int32 passNum = 0; passNum < this->NumberOfIterations; ++passNum){
 		TIndexedContainerIterator<TArray<Bud*>, Bud*, int32> iterator = this->m_rootBuds.CreateIterator();
 		for (iterator.Reset(); iterator; iterator++){
-			ProcessBud(m_rootBuds[iterator.GetIndex()], NULL, &ATreeGeneratorActor::ProcessAttractors);
-			ProcessBud(m_rootBuds[iterator.GetIndex()], NULL, &ATreeGeneratorActor::ProcessResourcesFirstPass);
+			ProcessBud(m_rootBuds[iterator.GetIndex()], &obstacles, &ATreeGeneratorActor::ProcessAttractors);
+			ProcessBud(m_rootBuds[iterator.GetIndex()], &obstacles, &ATreeGeneratorActor::ProcessResourcesFirstPass);
 			GatherResourcesToRootReturnValue retVal = GatherResourcesToRoot(m_rootBuds[iterator.GetIndex()]);
 			m_rootBuds[iterator.GetIndex()]->resource = (retVal.resources * NumberOfIterations) / (retVal.weight + NumberOfIterations);
 		}
 		for (iterator.Reset(); iterator; iterator++){
-			ProcessBud(m_rootBuds[iterator.GetIndex()], NULL, &ATreeGeneratorActor::ProcessAttractorsConical);
-			ProcessBud(m_rootBuds[iterator.GetIndex()], NULL, &ATreeGeneratorActor::ProcessResourcesSecondPass);
+			ProcessBud(m_rootBuds[iterator.GetIndex()], &obstacles, &ATreeGeneratorActor::ProcessAttractorsConical);
+			ProcessBud(m_rootBuds[iterator.GetIndex()], &obstacles, &ATreeGeneratorActor::ProcessResourcesSecondPass);
 			ProcessBud(m_rootBuds[iterator.GetIndex()], NULL, &ATreeGeneratorActor::KillBud);
-			GrowBuds(m_rootBuds[iterator.GetIndex()]);
+			GrowBuds(m_rootBuds[iterator.GetIndex()], obstacles);
 		}
 	}
-	GenerateModel();
 	this->enviroment.Reset();
-	this->m_rootBuds.Reset();
+	workerHasFinished = true;
+	return 0;
+}
+void ATreeGeneratorActor::Stop(){
+	workerThread = NULL;
+	this->enviroment.Reset();
+}
+
+void ATreeGeneratorActor::GenerateTree(){
+
+	boundingVol.Reset();
+	if (GetWorld()){
+		for (TActorIterator<AActor> ActorItr(GetWorld()); ActorItr; ++ActorItr){
+
+			if (ActorItr->ActorHasTag(TEXT("Bounding volume")))
+				boundingVol.Add(ActorItr->GetComponentsBoundingBox());
+		}
+	}
+	obstacles.Reset();
+	if (GetWorld()){
+		for (TActorIterator<AStaticMeshActor> ActorItr(GetWorld()); ActorItr; ++ActorItr){
+			obstacles.Add(ActorItr->GetComponentsBoundingBox());
+		}
+	}
+	if (workerThread)
+		workerThread->Kill();
+	workerThread = FRunnableThread::Create(this, TEXT("TreeGenerator"));
+	//GenerateModel();
 }
 
 void ATreeGeneratorActor::BeginDestroy(){
 	this->m_rootBuds.Reset();
-	TIndexedContainerIterator<TArray<AActor*>, AActor*, int32> leafIterator = this->leafs.CreateIterator();
-	for (leafIterator.Reset(); leafIterator; leafIterator++){
-		if (leafs[leafIterator.GetIndex()] != NULL){
-			leafs[leafIterator.GetIndex()]->Destroy();
-		}
-	}
 	AActor::BeginDestroy();
 }
 
@@ -293,7 +299,7 @@ void ATreeGeneratorActor::ProcessAttractorsConical(Bud* bud, void* parameters){
 		ProcessBud(m_rootBuds[iterator.GetIndex()], params, &ATreeGeneratorActor::GetBudsInRadius);
 	}
 
-	FVector direction = this->enviroment->GetDirectionFromCone(bud->position, bud->axis, EnviromentConeRadius, EnviromentConeAngle, params->buds);
+	FVector direction = this->enviroment->GetDirectionFromCone(bud->position, bud->axis, EnviromentConeRadius, EnviromentConeAngle, params->buds, *(TArray<FBox>*)parameters);
 	delete params;
 
 	float lenght;
@@ -364,7 +370,7 @@ void ATreeGeneratorActor::ProcessResourcesSecondPass(Bud* bud, void* parameters)
 	}
 }
 
-void ATreeGeneratorActor::GrowBuds(Bud* bud){
+void ATreeGeneratorActor::GrowBuds(Bud* bud, TArray<FBox> obstacles){
 	Bud* tmp;
 	if (bud->isDead)
 		return;
@@ -375,9 +381,9 @@ void ATreeGeneratorActor::GrowBuds(Bud* bud){
 
 	if (lenght < 0.01){
 		if (bud->allignedBud)
-			GrowBuds(bud->allignedBud);
+			GrowBuds(bud->allignedBud, obstacles);
 		if (bud->secondaryAllignedBud)
-			GrowBuds(bud->secondaryAllignedBud);
+			GrowBuds(bud->secondaryAllignedBud, obstacles);
 		return;
 	}
 
@@ -386,13 +392,13 @@ void ATreeGeneratorActor::GrowBuds(Bud* bud){
 	FVector position = bud->position + axis;
 	position.Y = FMath::Max(position.Y, 0.0f);
 	if (bud->secondaryAllignedBud){
-		GrowBuds(bud->allignedBud);
-		GrowBuds(bud->secondaryAllignedBud);
+		GrowBuds(bud->allignedBud, obstacles);
+		GrowBuds(bud->secondaryAllignedBud, obstacles);
 		return;
 	}
 	else{
 		if (bud->allignedBud){
-			GrowBuds(bud->allignedBud);
+			GrowBuds(bud->allignedBud, obstacles);
 			if (!bud->parentBud)
 				return;
 			tmp = new Bud(position, axis, bud);
@@ -418,7 +424,7 @@ void ATreeGeneratorActor::UpdateDiameter(Bud* bud, double branchDiameter){
 	}
 	UpdateDiameter(bud->allignedBud, branchDiameter);
 	UpdateDiameter(bud->secondaryAllignedBud, branchDiameter);
-	bud->diameter = calculateDiameter(bud->allignedBud->diameter, bud->secondaryAllignedBud->diameter, 2.5);
+	bud->diameter = calculateDiameter(bud->allignedBud->diameter, bud->secondaryAllignedBud->diameter, this->BranchDiameterExponent);
 	return;
 }
 
@@ -454,6 +460,7 @@ void ATreeGeneratorActor::BuildBranchModel(Bud* bud, GeometryParameters* paramet
 	if (bud->isDead)
 		return;
 	Bud* tmp = bud;
+	FProceduralMeshVertex point;
 	while (bud && !bud->isDead){
 		if (bud->secondaryAllignedBud && !bud->secondaryAllignedBud->isDead){
 			BuildBranchModel(bud->secondaryAllignedBud, parameters);
@@ -472,7 +479,7 @@ void ATreeGeneratorActor::BuildBranchModel(Bud* bud, GeometryParameters* paramet
 			this->NumberOfSegments,
 			parameters->points,
 			parameters->pointSize,
-			parameters->pointOffset, elapsedLenght/22.0);
+			parameters->pointOffset, elapsedLenght / 22.0);
 		buildPolyRing(parameters->polys,
 			parameters->polySize,
 			parameters->pointOffset,
@@ -497,7 +504,7 @@ void ATreeGeneratorActor::BuildBranchModel(Bud* bud, GeometryParameters* paramet
 			this->NumberOfSegments,
 			parameters->points,
 			parameters->pointSize,
-			parameters->pointOffset, elapsedLenght /22.0);
+			parameters->pointOffset, elapsedLenght / 22.0);
 
 		if (bud->allignedBud && !bud->allignedBud->isDead){
 			buildPolyRing(
@@ -507,8 +514,10 @@ void ATreeGeneratorActor::BuildBranchModel(Bud* bud, GeometryParameters* paramet
 				parameters->pointOffset + this->NumberOfSegments,
 				parameters->polyOffset, this->NumberOfSegments);
 			currentSegmentLenght = FVector::Dist(bud->position, bud->allignedBud->position);
-			/*buildPolyUVRing(parameters->uvtag,
-				parameters->polySize, elapsedLenght / brachLenght, (elapsedLenght + currentSegmentLenght) / branchLenght, parameters->polyOffset, this->NumberOfSegments);*/
+			if (bud->diameter < this->GenerateLeafsUpToDiameter){
+				point = parameters->points[parameters->pointOffset + rand->RandRange(0, this->NumberOfSegments)];
+				SpawnLeaf(point.Position, point.Normal);
+			}
 			elapsedLenght += currentSegmentLenght;
 			parameters->polyOffset += this->NumberOfSegments;
 		}
@@ -518,7 +527,7 @@ void ATreeGeneratorActor::BuildBranchModel(Bud* bud, GeometryParameters* paramet
 	}
 	bud = lastBud;
 	bud->originalAxis.Normalize();
-	FProceduralMeshVertex point;
+
 	point.Position = bud->position + bud->originalAxis;
 	point.Position = FVector(point.Position.X, point.Position.Z, point.Position.Y);
 	point.U = 0.5;
@@ -528,7 +537,8 @@ void ATreeGeneratorActor::BuildBranchModel(Bud* bud, GeometryParameters* paramet
 	point.Normal = point.Bitangent ^ point.Tangent;
 	parameters->points[parameters->pointOffset] = point;
 
-	parameters->caps.Add(point);
+	SpawnLeaf(point.Position, point.Normal);
+
 	buildPolyCap(
 		parameters->polys,
 		parameters->polySize,
@@ -546,13 +556,19 @@ void ATreeGeneratorActor::BuildBranchModel(Bud* bud, GeometryParameters* paramet
 
 
 void ATreeGeneratorActor::GenerateModel(){
+	if (workerThread)
+		workerThread->WaitForCompletion();
+	for (int i = 0; i != leafs.Num(); ++i){
+		leafs[i]->DestroyComponent();
+	}
+	leafs.Reset(0);
+
 	GeometryParameters* parameters = new GeometryParameters();
 	parameters->pointOffset = 0;
 	parameters->pointSize = 0;
 	parameters->polyOffset = 0;
 	parameters->polySize = 0;
 	parameters->capsCount = 0;
-	parameters->capsOffset = 0;
 
 	TIndexedContainerIterator<TArray<Bud*>, Bud*, int32> iterator = this->m_rootBuds.CreateIterator();
 	for (iterator.Reset(); iterator; iterator++){
@@ -562,8 +578,6 @@ void ATreeGeneratorActor::GenerateModel(){
 	for (iterator.Reset(); iterator; iterator++){
 		CalculateBranchModel(m_rootBuds[iterator.GetIndex()], parameters);
 	}
-
-	parameters->caps.Init(0);
 	parameters->points.Init(parameters->pointSize);
 	parameters->polys.Init(parameters->polySize);
 	for (iterator.Reset(); iterator; iterator++){
@@ -590,35 +604,44 @@ void ATreeGeneratorActor::GenerateModel(){
 	}
 
 	this->TreeMesh->SetProceduralMeshTriangles(polys);
+	delete parameters;
+}
 
-	UWorld* const World = GetWorld();
 
-	if (World && this->LeafActor){
-		TIndexedContainerIterator<TArray<FProceduralMeshVertex>, FProceduralMeshVertex, int32> rootIterator = parameters->caps;
-		for (rootIterator.Reset(); rootIterator; rootIterator++){
-			FVector position = parameters->caps[rootIterator.GetIndex()].Position;
-			FVector normal = parameters->caps[rootIterator.GetIndex()].Normal;
+void ATreeGeneratorActor::SpawnLeaf(FVector position, FVector normal){
+	UWorld* world = GetWorld();
+	if (!(world && LeafMeshes.Num()))
+		return;
 
-			float angle = 0;
 
-			if (normal.X == 0.0f){
-				angle = normal.Y < 0 ? -90 : 90;
-			}
-			else{
-				angle = FMath::RadiansToDegrees(FMath::Atan(normal.Y / normal.X));
-				if (normal.X < 0){
-					angle = 180 + angle;
-				}
-			}
-			if (angle > 180)
-				angle -= 360;
-			FRotator rotator = FRotator::MakeFromEuler(FVector(0, 0, angle));
+	float angle = 0;
 
-			FActorSpawnParameters spawnParams = FActorSpawnParameters();
-			spawnParams.Owner = this;
-			AActor* leaf = World->SpawnActor(this->LeafActor, &position, &rotator, spawnParams);
-			leafs.Add(leaf);
+	if (normal.X == 0.0f){
+		angle = normal.Y < 0 ? -90 : 90;
+	}
+	else{
+		angle = FMath::RadiansToDegrees(FMath::Atan(normal.Y / normal.X));
+		if (normal.X < 0){
+			angle = 180 + angle;
 		}
 	}
-	delete parameters;
+	if (angle > 180)
+		angle -= 360;
+
+	FRotator rotator = FRotator::MakeFromEuler(FVector(0, 0, angle) + FVector(rand->FRandRange(-40, 40), rand->FRandRange(-40, 40), rand->FRandRange(-40, 40)));
+	FTransform transform;
+	transform.SetComponents(rotator.Quaternion(), position, FVector(rand->FRandRange(1, 2), rand->FRandRange(1, 2), rand->FRandRange(1, 2)));
+
+	UStaticMeshComponent* leaf = NewObject<UStaticMeshComponent>(this);
+	leaf->SetStaticMesh(LeafMeshes[rand->RandRange(0, LeafMeshes.Num() - 1)]);
+	leaf->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	leaf->AttachTo(this->RootComponent);
+	leaf->SetRelativeTransform(transform);
+	leaf->RegisterComponent();
+	AddOwnedComponent(leaf);
+	leafs.Add(leaf);
+}
+
+bool ATreeGeneratorActor::IsGenerating(){
+	return workerThread && !workerHasFinished;
 }

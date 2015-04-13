@@ -6,6 +6,8 @@
 
 #define ENVIROMENT_TILE_SIZE 64
 
+//bool RayIntersectsBox(FVector origin, FVector axis, FBox box);
+
 /**
  * 
  */
@@ -27,7 +29,7 @@ public:
 
 	void DeactivateAttractorsInSphere(FVector position, double radius);
 	void DeactivateAttractorsInBox(FBox box);
-	FVector GetDirectionFromCone(FVector position, FVector axis, double radius, double angle, TArray<Bud*> closeBuds);
+	FVector GetDirectionFromCone(FVector position, FVector axis, double radius, double angle, TArray<Bud*> closeBuds, TArray<FBox> obstacles);
 	FVector GetPosition() const { return m_begin; }
 };
 
