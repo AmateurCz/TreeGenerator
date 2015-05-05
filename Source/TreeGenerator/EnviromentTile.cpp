@@ -3,7 +3,7 @@
 #include "TreeGenerator.h"
 #include "EnviromentTile.h"
 
-bool RayIntersectsBox(FVector origin, FVector axis, FBox box){
+bool RayIntersectsBox(FVector origin, FVector axis, FBox box, float distance){
 
 	FVector dirfrac;
 
@@ -28,7 +28,7 @@ bool RayIntersectsBox(FVector origin, FVector axis, FBox box){
 	{
 		return false;
 	}
-	return true;
+	return tmin <= distance;
 }
 
 EnviromentTile::EnviromentTile(FVector begin)
@@ -137,7 +137,7 @@ FVector EnviromentTile::GetDirectionFromCone(FVector position, FVector axis, dou
 			direction.Normalize();
 			add = add && abs(acos(FVector::DotProduct(axis, direction))) < angle;
 			for (TIndexedContainerIterator<TArray<FBox>, FBox, int32>iterator = obstacles; iterator; iterator++){
-				add = add && !RayIntersectsBox(FVector(position.X, position.Z, position.Y), FVector(direction.X, direction.Z, direction.Y), obstacles[iterator.GetIndex()]);
+				add = add && !RayIntersectsBox(FVector(position.X, position.Z, position.Y), FVector(direction.X, direction.Z, direction.Y), obstacles[iterator.GetIndex()], FVector::Dist(attractorPosition ,position));
 			}
 			if (add){
 				v += direction;

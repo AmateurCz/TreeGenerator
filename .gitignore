@@ -1,5 +1,7 @@
 Binaries/
 Saved/
+ThirdParty/FBX/*
+!ThirdParty/FBX/fbx_readme.txt
 Intermediate/Build/
 Intermediate/Config/
 Intermediate/ReimportCache/
