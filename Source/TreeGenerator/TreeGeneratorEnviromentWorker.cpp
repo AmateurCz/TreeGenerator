@@ -277,10 +277,6 @@ void TreeGeneratorEnviromentWorker::GrowBuds(Bud* bud, TArray<FBox> obstacles){
 }
 
 TArray<Bud*> TreeGeneratorEnviromentWorker::GetResult(){
-	if (isRunning){
-		TArray<Bud*> empty;
-		empty.Init(0);
-		return empty;
-	}
+	this->workerThread->WaitForCompletion();
 	return rootBuds;
 }

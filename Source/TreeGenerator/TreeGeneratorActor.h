@@ -24,6 +24,7 @@ class TREEGENERATOR_API ATreeGeneratorActor : public AActor
 
 private:
 	TArray<UStaticMeshComponent*> leafs;
+	TArray<Bud*> m_rootBuds;
 	FRandomStream random;
 
 	TreeGeneratorEnviromentWorker* generator;

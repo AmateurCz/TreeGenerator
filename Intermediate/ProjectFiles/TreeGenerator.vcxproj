@@ -87,7 +87,9 @@
     <ClInclude Include="..\..\Source\TreeGenerator\TreeGenerator.h" />
     <ClCompile Include="..\..\Source\TreeGenerator\TreeGeneratorActor.cpp" />
     <ClInclude Include="..\..\Source\TreeGenerator\TreeGeneratorActor.h" />
+    <ClCompile Include="..\..\Source\TreeGenerator\TreeGeneratorEnviromentWorker.cpp" />
     <ClCompile Include="..\..\Source\TreeGenerator\TreeGeneratorGameMode.cpp" />
+    <ClInclude Include="..\..\Source\TreeGenerator\TreeGeneratorEnviromentWorker.h" />
     <ClInclude Include="..\..\Source\TreeGenerator\TreeGeneratorGameMode.h" />
     <None Include="..\..\Source\TreeGenerator\Resources\Windows\RCa06948" />
     <ResourceCompile Include="..\..\Source\TreeGenerator\Resources\Windows\TreeGenerator.rc" />
@@ -137,7 +139,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugGame_Game|x64'">
-    <IncludePath>D:\Dokumenty\Unreal Projects\TreeGenerator\ThirdParty\FBX\include</IncludePath>
+    <IncludePath>..\..\ThirdParty\FBX\include;$(IncludePath)</IncludePath>
     <ReferencePath />
     <LibraryPath />
     <LibraryWPath />
@@ -154,7 +156,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugGame_Editor|x64'">
-    <IncludePath>D:\Dokumenty\Unreal Projects\TreeGenerator\ThirdParty\FBX\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\ThirdParty\FBX\include;$(IncludePath)</IncludePath>
     <ReferencePath />
     <LibraryPath />
     <LibraryWPath />
@@ -194,7 +196,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Development_Game|x64'">
-    <IncludePath>D:\Dokumenty\Unreal Projects\TreeGenerator\ThirdParty\FBX\include</IncludePath>
+    <IncludePath>..\..\ThirdParty\FBX\include;$(IncludePath)</IncludePath>
     <ReferencePath />
     <LibraryPath />
     <LibraryWPath />
@@ -211,7 +213,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Development_Editor|x64'">
-    <IncludePath>D:\Dokumenty\Unreal Projects\TreeGenerator\ThirdParty\FBX\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\ThirdParty\FBX\include;$(IncludePath)</IncludePath>
     <ReferencePath />
     <LibraryPath />
     <LibraryWPath />
@@ -251,7 +253,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Shipping_Game|Win32'">
-    <IncludePath />
+    <IncludePath>..\..\ThirdParty\FBX\include;$(IncludePath)</IncludePath>
     <ReferencePath />
     <LibraryPath />
     <LibraryWPath />
@@ -298,7 +300,19 @@
     <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Shipping_Game|x64'">
-    <IncludePath>D:\Dokumenty\Unreal Projects\TreeGenerator\ThirdParty\FBX\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\ThirdParty\FBX\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Development_Game|Win32'">
+    <IncludePath>..\..\ThirdParty\FBX\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugGame_Editor|Win32'">
+    <IncludePath>..\..\ThirdParty\FBX\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugGame_Game|Win32'">
+    <IncludePath>..\..\ThirdParty\FBX\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Development_Editor|Win32'">
+    <IncludePath>..\..\ThirdParty\FBX\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
   </ItemDefinitionGroup>

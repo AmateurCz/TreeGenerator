@@ -278,6 +278,9 @@ void ATreeGeneratorActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	if (generator && !generator->IsRunning()){
+		m_rootBuds = generator->GetResult();
+		GenerateModel(); 
+		// oprava chyby s pozici listu
 		GenerateModel();
 		delete generator; 
 		generator = NULL;
@@ -319,7 +322,7 @@ void ATreeGeneratorActor::GenerateTree(){
 	}
 
 	generator = new TreeGeneratorEnviromentWorker(roots, rootDirections, boundingVol, obstacles, RandomSeed, AttractorsMinimum,
-		AttractorsMaximum, NumberOfIterations, OcupiedRadius, EnviromentConeRadius, EnviromentConeAngle, EnviromentStrength, GravityVector, LightStrength);
+		AttractorsMaximum, NumberOfIterations, OcupiedRadius, EnviromentConeRadius, EnviromentConeAngle, EnviromentStrength, FVector(GravityVector.X, GravityVector.Z, GravityVector.Y), LightStrength);
 	generator->Start();
 	//GenerateModel();
 }
@@ -478,7 +481,7 @@ void ATreeGeneratorActor::BuildBranchModel(Bud* bud, GeometryParameters* paramet
 
 void ATreeGeneratorActor::GenerateModel(){
 
-	if (IsGenerating())
+	if (this->m_rootBuds.Num() == 0)
 		return;
 
 	random.Initialize(this->RandomSeed);
@@ -494,8 +497,6 @@ void ATreeGeneratorActor::GenerateModel(){
 	modelData->polyOffset = 0;
 	modelData->polySize = 0;
 	modelData->capsCount = 0;
-
-	TArray<Bud*> m_rootBuds = generator->GetResult();
 
 	TIndexedContainerIterator<TArray<Bud*>, Bud*, int32> iterator = m_rootBuds.CreateIterator();
 	for (iterator.Reset(); iterator; iterator++){
@@ -569,7 +570,7 @@ void ATreeGeneratorActor::SpawnLeaf(FVector position, FVector normal){
 
 	if (leaf){
 		leaf->SetStaticMesh(LeafMeshes[random.RandRange(0, LeafMeshes.Num() - 1)]);
-		leaf->SetRelativeTransform(transform);
+		leaf->SetWorldTransform(transform);
 		leaf->UpdateComponentToWorld();
 	}
 	else{
@@ -577,9 +578,9 @@ void ATreeGeneratorActor::SpawnLeaf(FVector position, FVector normal){
 		leaf->SetStaticMesh(LeafMeshes[random.RandRange(0, LeafMeshes.Num() - 1)]);
 		leaf->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		leaf->AttachTo(this->RootComponent);
-		leaf->SetRelativeTransform(transform);
-		leaf->RegisterComponent();
+		leaf->SetWorldTransform(transform);
 		leaf->UpdateComponentToWorld();
+		leaf->RegisterComponent();
 		leafs.Add(leaf);
 	}
 	AddOwnedComponent(leaf);
@@ -661,6 +662,7 @@ bool ATreeGeneratorActor::Export(){
 	root->AddChild(lNode);
 
 	FString filePath = FPaths::Combine( FPaths::GameDir().GetCharArray().GetData(), TEXT("Output\\Tree.fbx"));
+	filePath = FPaths::ConvertRelativePathToFull(filePath);
 	lResult = SaveScene(lSdkManager, lScene, filePath);
 	if (lResult == false)
 	{
